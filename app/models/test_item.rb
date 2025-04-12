@@ -1,0 +1,3 @@
+class TestItem < ApplicationRecord
+
+end
