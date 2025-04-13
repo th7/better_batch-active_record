@@ -101,15 +101,18 @@ PATH
   remote: ../better_batch-active_record
   specs:
     better_batch-active_record (0.1.0)
-      activerecord (>= 7)
-      better_batch
+
+PATH
+  remote: ../better_batch
+  specs:
+    better_batch (0.1.0)
 
 GEM
   remote: https://rubygems.org/
   specs:
+    anbt-sql-formatter (0.1.2)
     base64 (0.2.0)
     benchmark (0.4.0)
-    better_batch (0.1.0)
     bigdecimal (3.1.9)
     builder (3.3.0)
     concurrent-ruby (1.3.5)
@@ -238,6 +241,8 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  anbt-sql-formatter
+  better_batch!
   better_batch-active_record!
   pg (~> 1.1)
   puma (>= 5.0)

@@ -14,5 +14,10 @@ group :development, :test do
   gem 'rspec-rails'
 end
 
-
+# this should generally be required by better_batch-active_record
+# but in order to get it to work around limitations of gemspec
+# and load the local version of the gem
+# we set up like this
+gem 'better_batch', path: '../better_batch'
 gem 'better_batch-active_record', path: '../better_batch-active_record'
+gem 'anbt-sql-formatter'
