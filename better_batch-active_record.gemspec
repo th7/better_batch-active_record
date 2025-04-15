@@ -23,13 +23,13 @@ Gem::Specification.new do |spec|
   gemspec = File.basename(__FILE__)
   spec.files = IO.popen(%w[git ls-files -z], chdir: __dir__, err: IO::NULL) do |ls|
     ls.readlines("\x0", chomp: true).select do |f|
-      f != gemspec && (p f; f.start_with?(*%w[lib exe]))
+      f != gemspec && f.start_with?(*%w[lib exe])
     end
   end
   spec.bindir = 'exe'
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
-  # spec.add_dependency 'better_batch'
-  # spec.add_dependency 'activerecord', '>=7'
+  spec.add_dependency 'better_batch', '~> 1'
+  spec.add_dependency 'activerecord', '>=7', '<9'
 end

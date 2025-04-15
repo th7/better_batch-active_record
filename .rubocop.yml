@@ -1,0 +1,12 @@
+plugins:
+  - rubocop-rake
+  - rubocop-rspec
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.2
+
+RSpec/ContextWording:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false

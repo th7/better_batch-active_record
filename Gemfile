@@ -1,5 +1,6 @@
 source "https://rubygems.org"
 
+gemspec
 # Use main development branch of Rails
 gem "rails", github: "rails/rails", branch: "main"
 # Use postgresql as the database for Active Record
@@ -12,12 +13,9 @@ gem "tzinfo-data", platforms: %i[ windows jruby ]
 
 group :development, :test do
   gem 'rspec-rails'
+  gem 'rubocop'
+  gem 'rubocop-rake'
+  gem 'rubocop-rspec'
 end
 
-# this should generally be required by better_batch-active_record
-# but in order to get it to work around limitations of gemspec
-# and load the local version of the gem
-# we set up like this
-gem 'better_batch', path: '../better_batch'
-gem 'better_batch-active_record', path: '../better_batch-active_record'
-gem 'anbt-sql-formatter'
+# gem 'better_batch', path: '../better_batch'
