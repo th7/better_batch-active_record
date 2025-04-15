@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'better_batch/active_record/query'
 
 module BetterBatch

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'better_batch/query'
 
 module BetterBatch
@@ -66,19 +68,20 @@ module BetterBatch
         unique_columns = Array(unique_by)
         input_columns = array_data.first.keys
         returning = Array(returning)
-        BetterBatch::Query.new(table_name:, primary_key:, input_columns:, column_types:, unique_columns:, now_on_insert:, now_on_update:, returning:)
+        BetterBatch::Query.new(table_name:, primary_key:, input_columns:, column_types:, unique_columns:,
+                               now_on_insert:, now_on_update:, returning:)
       end
 
       def exec_upsert(query, data)
         begin
           sql = query.upsert
-        rescue
+        rescue StandardError
           raise query.inspect
         end
         json_data = JSON.generate(data)
         begin
           model.connection.exec_query(sql, nil, [json_data])
-        rescue
+        rescue StandardError
           raise [query.inspect, query.upsert_formatted].join("\n")
         end
       end
@@ -86,13 +89,13 @@ module BetterBatch
       def exec_select(query, data)
         begin
           sql = query.select
-        rescue
+        rescue StandardError
           raise query.inspect
         end
         json_data = JSON.generate(data)
         begin
           model.connection.exec_query(sql, nil, [json_data])
-        rescue
+        rescue StandardError
           raise [query.inspect, query.select_formatted].join("\n")
         end
       end
@@ -118,11 +121,11 @@ module BetterBatch
       end
 
       def created_at_if_present
-        :created_at if column_types.has_key?(:created_at)
+        :created_at if column_types.key?(:created_at)
       end
 
       def updated_at_if_present
-        :updated_at if column_types.has_key?(:updated_at)
+        :updated_at if column_types.key?(:updated_at)
       end
 
       def hash_rows(returning, rows)
