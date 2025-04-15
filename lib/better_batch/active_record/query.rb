@@ -11,7 +11,7 @@ module BetterBatch
 
       def upsert(data, unique_by:, returning:)
         query = build_query(data, unique_by:, returning:)
-        result = exec_upsert(query, data)
+        result = exec_query(:upsert, query, data)
         case returning
         when Symbol
           result.rows.map(&:first)
@@ -24,7 +24,7 @@ module BetterBatch
 
       def with_upserted_pk(data, unique_by:)
         query = build_query(data, unique_by:, returning: primary_key)
-        data.zip(exec_upsert(query, data).rows.map(&:first))
+        data.zip(exec_query(:upsert, query, data).rows.map(&:first))
       end
 
       def set_upserted_pk(data, unique_by:)
@@ -36,7 +36,7 @@ module BetterBatch
 
       def select(data, unique_by:, returning:)
         query = build_query(data, unique_by:, returning:)
-        result = exec_select(query, data)
+        result = exec_query(:select, query, data)
         case returning
         when Symbol
           result.rows.map(&:first)
@@ -49,7 +49,7 @@ module BetterBatch
 
       def with_selected_pk(data, unique_by:)
         query = build_query(data, unique_by:, returning: primary_key)
-        data.zip(exec_select(query, data).rows.map(&:first))
+        data.zip(exec_query(:select, query, data).rows.map(&:first))
       end
 
       def set_selected_pk(data, unique_by:)
@@ -72,32 +72,22 @@ module BetterBatch
                                now_on_insert:, now_on_update:, returning:)
       end
 
-      def exec_upsert(query, data)
-        begin
-          sql = query.upsert
-        rescue StandardError
-          raise query.inspect
-        end
+      def exec_query(type, query, data)
+        sql = build_sql(type, query)
         json_data = JSON.generate(data)
-        begin
-          model.connection.exec_query(sql, nil, [json_data])
-        rescue StandardError
-          raise [query.inspect, query.upsert_formatted].join("\n")
-        end
+        db_exec(sql, query, json_data)
       end
 
-      def exec_select(query, data)
-        begin
-          sql = query.select
-        rescue StandardError
-          raise query.inspect
-        end
-        json_data = JSON.generate(data)
-        begin
-          model.connection.exec_query(sql, nil, [json_data])
-        rescue StandardError
-          raise [query.inspect, query.select_formatted].join("\n")
-        end
+      def build_sql(type, query)
+        query.public_send(type)
+      rescue StandardError
+        raise query.inspect
+      end
+
+      def db_exec(sql, query, json_data)
+        model.connection.exec_query(sql, nil, [json_data])
+      rescue StandardError
+        raise [query.inspect, query.upsert_formatted].join("\n")
       end
 
       def table_name

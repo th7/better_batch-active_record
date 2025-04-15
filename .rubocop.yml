@@ -4,8 +4,14 @@ plugins:
 AllCops:
   NewCops: enable
   TargetRubyVersion: 3.2
+  SuggestExtensions:
+    rubocop-rails: false
+    rubocop-rspec_rails: false
 
 RSpec/ContextWording:
+  Enabled: false
+
+RSpec/NamedSubject:
   Enabled: false
 
 Style/Documentation:
