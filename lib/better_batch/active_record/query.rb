@@ -9,20 +9,16 @@ module BetterBatch
         @model = model
       end
 
-      def upsert(data, unique_by:, returning: nil)
-        query = build_query(data, unique_by:, returning:)
-        result = exec_query(:upsert, query, data)
+      def upsert(data, unique_by:, except: nil, returning: nil)
+        upsert_data = slice_upsert(data, except:)
+        query = build_query(upsert_data, unique_by:, returning:)
+        result = exec_query(:upsert, query, upsert_data)
         build_return(returning, result.rows, query)
       end
 
       def with_upserted_pk(data, unique_by:, except: nil)
-        upsert_data = if except
-                        data.map { |datum| datum.except(*except) }
-                      else
-                        data
-                      end
-        query = build_query(upsert_data, unique_by:, returning: primary_key)
-        data.zip(exec_query(:upsert, query, data).rows.map(&:first))
+        upserted = upsert(data, unique_by:, except:, returning: primary_key)
+        data.zip(upserted)
       end
 
       def set_upserted_pk(data, unique_by:)
@@ -33,6 +29,7 @@ module BetterBatch
       end
 
       def select(data, unique_by:, returning:)
+        assert_inputs_ok!(data, unique_by:)
         select_data = data.map { |datum| datum.slice(*unique_by) }
         query = build_query(select_data, unique_by:, returning:)
         result = exec_query(:select, query, select_data)
@@ -51,8 +48,7 @@ module BetterBatch
       end
 
       def with_selected_pk(data, unique_by:)
-        select_data = data.map { |datum| datum.slice(*unique_by) }
-        data.zip(select(select_data, unique_by:, returning: primary_key))
+        data.zip(select(data, unique_by:, returning: primary_key))
       end
 
       def set_selected_pk(data, unique_by:)
@@ -66,19 +62,32 @@ module BetterBatch
 
       attr_reader :model
 
+      def slice_upsert(data, except:)
+        case except
+        when nil, []
+          data
+        else
+          data.map { |datum| datum.except(*except) }
+        end
+      end
+
+      def assert_inputs_ok!(data, unique_by:)
+        data_keys = data.first.keys
+        missing = Array(unique_by) - data_keys
+        return if missing.empty?
+
+        msg = "All unique_by columns must be in the given data, but #{missing.inspect} was missing from #{data_keys}."
+        raise Error, msg
+      end
+
       def build_query(data, unique_by:, returning:)
-        array_data = data.to_a
-        unique_columns = Array(unique_by)
-        input_columns = array_data.first.keys
-        returning = Array(returning)
-        BetterBatch::Query.new(table_name:, primary_key:, input_columns:, column_types:, unique_columns:,
-                               now_on_insert:, now_on_update:, returning:)
+        BetterBatch::Query.new(table_name:, primary_key:, input_columns: data.first.keys,
+                               column_types:, unique_columns: unique_by, now_on_insert:,
+                               now_on_update:, returning:)
       end
 
       def exec_query(type, query, data)
-        sql = query.public_send(type)
-        json_data = JSON.generate(data)
-        db_exec(sql, json_data)
+        db_exec(query.public_send(type), JSON.generate(data))
       end
 
       def db_exec(sql, json_data)

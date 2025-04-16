@@ -59,9 +59,14 @@ module Tasks
             copy_gemfile(f1, f2, major_version)
           end
         end
-        system({ 'BUNDLE_GEMFILE' => gemfile }, 'bundle', 'update', 'activerecord', exception: true)
-        system({ 'BUNDLE_GEMFILE' => gemfile }, 'bundle', 'lock', '--add-platform', 'x86_64-linux', exception: true)
+        update_gemfile(gemfile)
       end
+    end
+
+    def update_gemfile(gemfile)
+      system({ 'BUNDLE_GEMFILE' => gemfile }, 'bundle', 'update', 'activerecord', exception: true)
+      system({ 'BUNDLE_GEMFILE' => gemfile }, 'bundle', 'update', 'better_batch', exception: true)
+      system({ 'BUNDLE_GEMFILE' => gemfile }, 'bundle', 'lock', '--add-platform', 'x86_64-linux', exception: true)
     end
 
     def copy_gemfile(original, copy, major_version)

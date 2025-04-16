@@ -118,6 +118,18 @@ RSpec.describe TestItem do
 
       instance_exec(&common_base_expectations)
     end
+
+    context 'string keys' do
+      let(:returning) { '*' }
+
+      before { spec_util.data.each(&:stringify_keys!) }
+
+      it 'raises a descriptive error' do
+        msg = 'All unique_by columns must be in the given data, ' \
+              'but [:unique_field] was missing from ["unique_field", "data"].'
+        expect { subject }.to raise_error(BetterBatch::ActiveRecord::Error, msg)
+      end
+    end
   end
 
   common_with_pk_expectations = proc do
