@@ -12,18 +12,16 @@ module BetterBatch
       def upsert(data, unique_by:, returning: nil)
         query = build_query(data, unique_by:, returning:)
         result = exec_query(:upsert, query, data)
-        case returning
-        when Symbol
-          result.rows.map(&:first)
-        when nil, []
-          nil
-        else
-          hash_rows(query.returning, result.rows)
-        end
+        build_return(returning, result.rows, query)
       end
 
-      def with_upserted_pk(data, unique_by:)
-        query = build_query(data, unique_by:, returning: primary_key)
+      def with_upserted_pk(data, unique_by:, except: nil)
+        upsert_data = if except
+                        data.map { |datum| datum.except(*except) }
+                      else
+                        data
+                      end
+        query = build_query(upsert_data, unique_by:, returning: primary_key)
         data.zip(exec_query(:upsert, query, data).rows.map(&:first))
       end
 
@@ -35,21 +33,26 @@ module BetterBatch
       end
 
       def select(data, unique_by:, returning:)
-        query = build_query(data, unique_by:, returning:)
-        result = exec_query(:select, query, data)
+        select_data = data.map { |datum| datum.slice(*unique_by) }
+        query = build_query(select_data, unique_by:, returning:)
+        result = exec_query(:select, query, select_data)
+        build_return(returning, result.rows, query)
+      end
+
+      def build_return(returning, rows, query)
         case returning
         when Symbol
-          result.rows.map(&:first)
-        when nil
+          rows.map(&:first)
+        when nil, []
           nil
         else
-          hash_rows(query.returning, result.rows)
+          hash_rows(query.returning, rows)
         end
       end
 
       def with_selected_pk(data, unique_by:)
-        query = build_query(data, unique_by:, returning: primary_key)
-        data.zip(exec_query(:select, query, data).rows.map(&:first))
+        select_data = data.map { |datum| datum.slice(*unique_by) }
+        data.zip(select(select_data, unique_by:, returning: primary_key))
       end
 
       def set_selected_pk(data, unique_by:)

@@ -38,7 +38,8 @@ data
 => [ { id: 1, unique_field: ... }, ...]
 
 # if you need to do something a little more involved
-MyModel.better_batch.with_upserted_pk(data, unique_by: :unique_field) do |data, pk|
+# except: will prevent extraneous fields from going to the database
+MyModel.better_batch.with_upserted_pk(data, except: :child_records, unique_by: :unique_field) do |data, pk|
   data[:id] = id
   data[:child_records].each do |child_record|
     child_record[:parent_id] = id
