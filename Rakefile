@@ -52,6 +52,7 @@ module Tasks
     end
 
     def update_gemfiles
+      update_main
       %w[7 8].each do |major_version|
         gemfile = "gemfiles/activerecord-#{major_version}.Gemfile"
         File.open('Gemfile', 'r') do |f1|
@@ -59,14 +60,22 @@ module Tasks
             copy_gemfile(f1, f2, major_version)
           end
         end
-        update_gemfile(gemfile)
+        bundle_install(gemfile)
       end
     end
 
-    def update_gemfile(gemfile)
-      system({ 'BUNDLE_GEMFILE' => gemfile }, 'bundle', 'update', 'activerecord', exception: true)
-      system({ 'BUNDLE_GEMFILE' => gemfile }, 'bundle', 'update', 'better_batch', exception: true)
-      system({ 'BUNDLE_GEMFILE' => gemfile }, 'bundle', 'lock', '--add-platform', 'x86_64-linux', exception: true)
+    def update_main
+      sh('bundle', 'update', 'activerecord')
+      sh('bundle', 'update', 'better_batch')
+      sh('bundle', 'install')
+      sh('bundle', 'lock', '--add-platform=x86_64-linux')
+    end
+
+    def bundle_install(gemfile)
+      sh({ 'BUNDLE_GEMFILE' => gemfile }, 'bundle', 'lock', '--add-platform=x86_64-linux')
+      sh({ 'BUNDLE_GEMFILE' => gemfile }, 'bundle', 'update', 'activerecord')
+      sh({ 'BUNDLE_GEMFILE' => gemfile }, 'bundle', 'update', 'better_batch')
+      sh({ 'BUNDLE_GEMFILE' => gemfile }, 'bundle', 'install')
     end
 
     def copy_gemfile(original, copy, major_version)
