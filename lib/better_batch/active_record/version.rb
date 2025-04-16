@@ -7,6 +7,6 @@ module BetterBatch
     # and trying to prevent it from autoloading was a struggle
     # so, as usual, the right thing to do is bend to Rails' will
     module Version; end
-    VERSION = '1.0.0'
+    VERSION = '1.0.1'
   end
 end
