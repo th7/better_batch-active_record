@@ -2,7 +2,8 @@
 
 source 'https://rubygems.org'
 
-gemspec
+gemspec path: '..'
+
 # Use main development branch of Rails
 gem 'rails'
 # Use postgresql as the database for Active Record
@@ -19,3 +20,5 @@ group :development, :test do
   gem 'rubocop-rake'
   gem 'rubocop-rspec'
 end
+
+gem 'activerecord', '~> 7'

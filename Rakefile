@@ -2,15 +2,17 @@
 
 require 'English'
 require 'bundler/gem_tasks'
-require 'rspec/core/rake_task'
 
+require 'rspec/core/rake_task'
 RSpec::Core::RakeTask.new(:spec)
 
 require 'rubocop/rake_task'
-
 RuboCop::RakeTask.new
 
-task default: %i[spec:multi rubocop]
+require_relative 'config/application'
+Rails.application.load_tasks
+
+task default: %i[spec rubocop]
 
 module Tasks
   class << self
@@ -18,7 +20,7 @@ module Tasks
 
     def install
       install_release_if
-      install_spec_multi
+      install_update_gemfiles
     end
 
     private
@@ -42,17 +44,30 @@ module Tasks
       assert_version_sane!
     end
 
-    def install_spec_multi
-      namespace :spec do
-        task :multi do
-          spec_multi
-        end
+    def install_update_gemfiles
+      desc 'Update files in gemfiles/ to match Gemfile + variations to test and to use latest variations to test'
+      task :update_gemfiles do
+        update_gemfiles
       end
     end
 
-    def spec_multi
+    def update_gemfiles
       ['7', '8'].each do |major_version|
-        sh('bundle', 'remove', 'activerecord')
+        gemfile = "gemfiles/activerecord-#{major_version}.gemfile"
+        File.open('Gemfile', 'r') do |f1|
+          File.open(gemfile, 'w') do |f2|
+            f1.each_line do |line|
+              if line.start_with?('gemspec')
+                f2.write("gemspec path: '..'\n\n")
+              else
+                f2.write(line)
+              end
+            end
+            f2.write("\ngem 'activerecord', '~> #{major_version}'\n")
+          end
+        end
+        system({ 'BUNDLE_GEMFILE' => gemfile }, 'bundle', 'update', 'activerecord', exception: true)
+        system({ 'BUNDLE_GEMFILE' => gemfile }, 'bundle', 'lock', '--add-platform', 'x86_64-linux', exception: true)
       end
     end
 

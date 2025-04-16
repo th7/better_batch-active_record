@@ -4,14 +4,21 @@ on:
   pull_request:
 
 jobs:
-  release:
+  test:
     runs-on: ubuntu-latest
-    name: Ruby ${{ matrix.ruby }}
+    name: Ruby ${{ matrix.ruby }} Gemfile ${{ matrix.gemfile }}
     strategy:
       matrix:
         ruby:
-          - '3.4.2'
-
+          - '3.2'
+          - '3.3'
+          - '3.4'
+        gemfile:
+          - 'gemfiles/activerecord-7.gemfile'
+          - 'gemfiles/activerecord-8.gemfile'
+          - 'Gemfile'
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.gemfile }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Ruby
@@ -19,5 +26,9 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-      - name: Run the default tasks
-        run: bundle exec rake
+      - uses: hoverkraft-tech/compose-action@v2.0.1
+        with:
+          compose-file: 'docker-compose.yml'
+          services: 'db'
+      - run: bundle exec rake db:setup
+      - run: bundle exec rake

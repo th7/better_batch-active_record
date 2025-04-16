@@ -9,6 +9,7 @@ AllCops:
     rubocop-rspec_rails: false
   Exclude:
     - db/schema.rb
+    - vendor/**/* # needed in CI
 
 RSpec/ContextWording:
   Enabled: false
