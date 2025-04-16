@@ -14,8 +14,8 @@ jobs:
           - '3.3'
           - '3.4'
         gemfile:
-          - 'gemfiles/ActiveRecord-7.gemfile'
-          - 'gemfiles/ActiveRecord-8.gemfile'
+          - 'gemfiles/activerecord-7.Gemfile'
+          - 'gemfiles/activerecord-8.Gemfile'
           - 'Gemfile'
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.gemfile }}

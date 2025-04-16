@@ -53,7 +53,7 @@ module Tasks
 
     def update_gemfiles
       %w[7 8].each do |major_version|
-        gemfile = "gemfiles/ActiveRecord-#{major_version}.gemfile"
+        gemfile = "gemfiles/activerecord-#{major_version}.Gemfile"
         File.open('Gemfile', 'r') do |f1|
           File.open(gemfile, 'w') do |f2|
             copy_gemfile(f1, f2, major_version)
