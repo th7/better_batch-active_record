@@ -19,22 +19,22 @@ module Tasks
     include Rake::DSL
 
     def install
-      install_release_if
+      install_release_this
       install_update_gemfiles
     end
 
     private
 
-    def install_release_if
+    def install_release_this
       namespace :release do
         desc 'release if current version is later than last published version'
-        task if: :default do
-          release_if
+        task :this do
+          release_this
         end
       end
     end
 
-    def release_if
+    def release_this
       assert_correct_branch!
       if current_version > published_version
         assert_ci!
