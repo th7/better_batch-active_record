@@ -25,7 +25,7 @@ module Tasks
 
     private
 
-    def install_release_if # rubocop:disable Metrics/MethodLength
+    def install_release_if
       namespace :release do
         desc 'release if current version is later than last published version'
         task if: :default do
@@ -52,18 +52,11 @@ module Tasks
     end
 
     def update_gemfiles
-      ['7', '8'].each do |major_version|
-        gemfile = "gemfiles/activerecord-#{major_version}.gemfile"
+      %w[7 8].each do |major_version|
+        gemfile = "gemfiles/ActiveRecord-#{major_version}.gemfile"
         File.open('Gemfile', 'r') do |f1|
           File.open(gemfile, 'w') do |f2|
-            f1.each_line do |line|
-              if line.start_with?('gemspec')
-                f2.write("gemspec path: '..'\n\n")
-              else
-                f2.write(line)
-              end
-            end
-            f2.write("\ngem 'activerecord', '~> #{major_version}'\n")
+            copy_gemfile(f1, f2, major_version)
           end
         end
         system({ 'BUNDLE_GEMFILE' => gemfile }, 'bundle', 'update', 'activerecord', exception: true)
@@ -71,11 +64,22 @@ module Tasks
       end
     end
 
+    def copy_gemfile(original, copy, major_version)
+      original.each_line do |line|
+        if line.start_with?('gemspec')
+          copy.write("gemspec path: '..'\n\n")
+        else
+          copy.write(line)
+        end
+      end
+      copy.write("\ngem 'activerecord', '~> #{major_version}'\n")
+    end
+
     def fetch_latest_version(gem, version = nil)
-      all_version_arg = version && "--all --version '#{version}'" || ''
+      all_version_arg = (version && "--all --version '#{version}'") || ''
       raw = shr("gem search --remote #{all_version_arg} --exact #{gem}")
       versions = raw.match(/\((.+)\)/)[1].split(', ').map { |v| Gem::Version.new(v) }
-      versions.sort.last
+      versions.max
     end
 
     def published_version
