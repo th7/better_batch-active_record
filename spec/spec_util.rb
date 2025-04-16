@@ -97,12 +97,12 @@ class SpecUtil
       @spec_util = spec_util
     end
 
-    def method_missing(method, ...)
-      LazyEq.new { @spec_util.public_send(method, ...) }
+    def method_missing(meth, ...)
+      LazyEq.new { @spec_util.public_send(meth, ...) }
     end
 
-    def respond_to_missing?(method)
-      @spec_util.respond_to?(method)
+    def respond_to_missing?(meth)
+      @spec_util.respond_to?(meth)
     end
   end
 
@@ -112,7 +112,17 @@ class SpecUtil
     end
 
     def ==(other)
-      @block.call == other
+      called == other
+    end
+
+    def inspect
+      "#<SpecUtil::LazyEq @called=#{@called.inspect}>"
+    end
+
+    private
+
+    def called
+      @called ||= @block.call
     end
   end
 end
