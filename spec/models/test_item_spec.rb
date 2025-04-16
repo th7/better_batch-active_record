@@ -139,7 +139,7 @@ RSpec.describe TestItem do
       expect { subject }.to change(&ids_proc)
         .from([nil, nil, nil])
       # .to syntax eager evaluates and gets wrong result
-      expect(ids_proc.call).to eq(described_class.pluck(:id))
+      expect(ids_proc.call.sort).to eq(described_class.pluck(:id).sort)
     end
   end
 
