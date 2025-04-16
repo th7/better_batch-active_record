@@ -9,13 +9,13 @@ module BetterBatch
         @model = model
       end
 
-      def upsert(data, unique_by:, returning:)
+      def upsert(data, unique_by:, returning: nil)
         query = build_query(data, unique_by:, returning:)
         result = exec_query(:upsert, query, data)
         case returning
         when Symbol
           result.rows.map(&:first)
-        when nil
+        when nil, []
           nil
         else
           hash_rows(query.returning, result.rows)
@@ -73,21 +73,13 @@ module BetterBatch
       end
 
       def exec_query(type, query, data)
-        sql = build_sql(type, query)
+        sql = query.public_send(type)
         json_data = JSON.generate(data)
-        db_exec(sql, query, json_data)
+        db_exec(sql, json_data)
       end
 
-      def build_sql(type, query)
-        query.public_send(type)
-      rescue StandardError
-        raise query.inspect
-      end
-
-      def db_exec(sql, query, json_data)
+      def db_exec(sql, json_data)
         model.connection.exec_query(sql, nil, [json_data])
-      rescue StandardError
-        raise [query.inspect, query.upsert_formatted].join("\n")
       end
 
       def table_name

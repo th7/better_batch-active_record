@@ -65,6 +65,48 @@ RSpec.describe TestItem do
 
       it { is_expected.to be_nil }
     end
+
+    context 'returning: []' do
+      let(:returning) { [] }
+
+      it 'saves the expected records' do
+        expect { subject }.to change(described_class, :count).from(0).to(3)
+      end
+
+      it { is_expected.to be_nil }
+    end
+
+    context 'returning not specified' do
+      subject { better_batch.upsert(data, unique_by:) }
+
+      it { is_expected.to be_nil }
+    end
+  end
+
+  describe '#select' do
+    subject { better_batch.select(data, unique_by:, returning:) }
+
+    let(:returning) { :id }
+
+    before { better_batch.upsert(data, unique_by:) }
+
+    instance_exec(&common_base_expectations)
+
+    context 'returning: nil' do
+      let(:returning) { nil }
+
+      it 'raises an error' do
+        expect { subject }.to raise_error('Select query returning nothing is invalid.')
+      end
+    end
+
+    context 'returning: []' do
+      let(:returning) { [] }
+
+      it 'raises an error' do
+        expect { subject }.to raise_error('Select query returning nothing is invalid.')
+      end
+    end
   end
 
   common_with_pk_expectations = proc do
@@ -79,6 +121,14 @@ RSpec.describe TestItem do
     it 'saves the expected records' do
       expect { subject }.to change(described_class, :count).from(0).to(3)
     end
+  end
+
+  describe '#with_selected_pk' do # rubocop:disable RSpec/EmptyExampleGroup
+    subject { better_batch.with_upserted_pk(data, unique_by:) }
+
+    before { better_batch.upsert(data, unique_by:) }
+
+    instance_exec(&common_with_pk_expectations)
   end
 
   common_set_pk_expectations = proc do
@@ -101,5 +151,13 @@ RSpec.describe TestItem do
     it 'saves the expected records' do
       expect { subject }.to change(described_class, :count).from(0).to(3)
     end
+  end
+
+  describe '#set_selected_pk' do # rubocop:disable RSpec/EmptyExampleGroup
+    subject { better_batch.set_upserted_pk(data, unique_by:) }
+
+    before { better_batch.upsert(data, unique_by:) }
+
+    instance_exec(&common_set_pk_expectations)
   end
 end
