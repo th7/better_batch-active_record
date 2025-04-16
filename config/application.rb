@@ -23,7 +23,16 @@ Bundler.require(*Rails.groups)
 module BetterBatchActiveRecordTest
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.2
+    matched = ENV['BUNDLE_GEMFILE']&.match(/activerecord-(\d)/)
+    activerecord_major = (matched && matched[1]) || '8'
+    case activerecord_major
+    when '8'
+      config.load_defaults 8.0
+    when '7'
+      config.load_defaults 7.2
+    else
+      raise 'Unable to determine appropriate defaults.'
+    end
 
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
