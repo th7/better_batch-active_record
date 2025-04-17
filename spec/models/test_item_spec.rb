@@ -196,11 +196,38 @@ RSpec.describe TestItem do
     end
   end
 
-  describe '#set_upserted_pk' do # rubocop:disable RSpec/EmptyExampleGroup
-    subject { better_batch.set_upserted_pk(spec_util.data, unique_by:) }
+  describe '#set_upserted_pk' do
+    subject { better_batch.set_upserted_pk(spec_util.data, unique_by:, except:) }
+
+    let(:except) { nil }
 
     instance_exec(&common_set_pk_expectations)
     instance_exec(&assert_saved)
+
+    context 'except: :child_records' do # rubocop:disable RSpec/EmptyExampleGroup
+      let(:except) { :child_records }
+
+      before { spec_util.add_to_inputs(child_records: :anything) }
+
+      instance_exec(&common_set_pk_expectations)
+      instance_exec(&assert_saved)
+    end
+
+    context 'except: [:child_records]' do # rubocop:disable RSpec/EmptyExampleGroup
+      let(:except) { [:child_records] }
+
+      before { spec_util.add_to_inputs(child_records: :anything) }
+
+      instance_exec(&common_set_pk_expectations)
+      instance_exec(&assert_saved)
+    end
+
+    context 'except: is absent' do # rubocop:disable RSpec/EmptyExampleGroup
+      subject { better_batch.set_upserted_pk(spec_util.data, unique_by:) }
+
+      instance_exec(&common_set_pk_expectations)
+      instance_exec(&assert_saved)
+    end
   end
 
   describe '#set_selected_pk' do # rubocop:disable RSpec/EmptyExampleGroup

@@ -1,3 +1,7 @@
+## [1.0.3] - 2025-04-17
+
+- all forms of upsert can accept except:
+
 ## [1.0.2] - 2025-04-15
 
 - give clearer error if unique_by and data keys do not match

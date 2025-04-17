@@ -21,8 +21,8 @@ module BetterBatch
         data.zip(upserted)
       end
 
-      def set_upserted_pk(data, unique_by:)
-        with_upserted_pk(data, unique_by:).each do |row, pk|
+      def set_upserted_pk(data, unique_by:, except: nil)
+        with_upserted_pk(data, unique_by:, except:).each do |row, pk|
           row[primary_key] = pk
         end
         nil

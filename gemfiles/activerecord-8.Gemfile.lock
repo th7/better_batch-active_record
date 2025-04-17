@@ -1,7 +1,7 @@
 PATH
   remote: ..
   specs:
-    better_batch-active_record (1.0.2)
+    better_batch-active_record (1.0.3)
       activerecord (>= 7, < 9)
       better_batch (~> 1)
 
