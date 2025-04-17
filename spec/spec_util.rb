@@ -48,6 +48,14 @@ class SpecUtil
     data.zip(saved_records.pluck(:id))
   end
 
+  def expected_set_pk
+    data.zip(saved_records.pluck(:id)).map do |datum, id|
+      duped = datum.dup
+      duped[:id] = id
+      duped
+    end
+  end
+
   def saved_records
     @saved_records ||= spec.described_class.all.order(unique_field: :asc)
   end

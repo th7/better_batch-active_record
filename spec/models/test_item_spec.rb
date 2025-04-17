@@ -187,7 +187,7 @@ RSpec.describe TestItem do
   end
 
   common_set_pk_expectations = proc do
-    it { is_expected.to be_nil }
+    it { is_expected.to eq(spec_util.expected_set_pk) }
 
     it 'adds ids to the input data' do
       expect { subject }.to change { spec_util.inputs_slice(:id) }
@@ -231,7 +231,7 @@ RSpec.describe TestItem do
   end
 
   describe '#set_selected_pk' do # rubocop:disable RSpec/EmptyExampleGroup
-    subject { better_batch.set_upserted_pk(spec_util.data, unique_by:) }
+    subject { better_batch.set_selected_pk(spec_util.data, unique_by:) }
 
     before { better_batch.upsert(spec_util.data, unique_by:) }
 

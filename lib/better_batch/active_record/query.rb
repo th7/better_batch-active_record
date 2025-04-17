@@ -22,10 +22,10 @@ module BetterBatch
       end
 
       def set_upserted_pk(data, unique_by:, except: nil)
-        with_upserted_pk(data, unique_by:, except:).each do |row, pk|
+        with_upserted_pk(data, unique_by:, except:).map do |row, pk|
           row[primary_key] = pk
+          row
         end
-        nil
       end
 
       def select(data, unique_by:, returning:)
@@ -52,10 +52,10 @@ module BetterBatch
       end
 
       def set_selected_pk(data, unique_by:)
-        with_upserted_pk(data, unique_by:).each do |row, pk|
+        with_upserted_pk(data, unique_by:).map do |row, pk|
           row[primary_key] = pk
+          row
         end
-        nil
       end
 
       private
