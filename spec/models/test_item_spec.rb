@@ -9,7 +9,7 @@ RSpec.describe TestItem do
   let(:unique_by) { spec_util.unique_by }
 
   it 'has better_batch' do
-    expect(better_batch).to be_a(BetterBatch::ActiveRecord::Query)
+    expect(better_batch).to be_a(BetterBatch::ActiveRecord::Interface)
   end
 
   assert_saved = proc do
@@ -30,7 +30,7 @@ RSpec.describe TestItem do
     end
   end
 
-  common_base_expectations = proc do
+  base_expectations = proc do
     context 'returning: "*"' do
       let(:returning) { '*' }
 
@@ -61,7 +61,7 @@ RSpec.describe TestItem do
 
     let(:returning) { :id }
 
-    instance_exec(&common_base_expectations)
+    instance_exec(&base_expectations)
 
     instance_exec(&assert_saved)
 
@@ -95,7 +95,7 @@ RSpec.describe TestItem do
 
     before { spec_util.preload_default }
 
-    instance_exec(&common_base_expectations)
+    instance_exec(&base_expectations)
 
     context 'returning: nil' do
       let(:returning) { nil }
@@ -116,7 +116,7 @@ RSpec.describe TestItem do
     context 'with extraneous data' do # rubocop:disable RSpec/EmptyExampleGroup
       before { spec_util.add_to_inputs(child_records: :anything) }
 
-      instance_exec(&common_base_expectations)
+      instance_exec(&base_expectations)
     end
 
     context 'string keys' do
@@ -132,8 +132,19 @@ RSpec.describe TestItem do
     end
   end
 
-  common_with_pk_expectations = proc do
-    it { is_expected.to eq(spec_util.expected_with_pk) }
+  block_form_expectations = proc { it { is_expected.to be_nil } }
+
+  with_pk_non_block_expectations = proc do
+    it('returns inputs with pk') { is_expected.to eq(spec_util.expected_with_pk) }
+  end
+
+  with_pk_block_expectations = proc do
+    instance_exec(&block_form_expectations)
+
+    it 'yields inputs with pk' do
+      subject
+      expect(spec_util.yielded).to eq(spec_util.expected_with_pk)
+    end
   end
 
   describe '#with_upserted_pk' do
@@ -141,7 +152,7 @@ RSpec.describe TestItem do
 
     let(:except) { nil }
 
-    instance_exec(&common_with_pk_expectations)
+    instance_exec(&with_pk_non_block_expectations)
     instance_exec(&assert_saved)
 
     context 'except: :child_records' do # rubocop:disable RSpec/EmptyExampleGroup
@@ -149,7 +160,7 @@ RSpec.describe TestItem do
 
       before { spec_util.add_to_inputs(child_records: :anything) }
 
-      instance_exec(&common_with_pk_expectations)
+      instance_exec(&with_pk_non_block_expectations)
       instance_exec(&assert_saved)
     end
 
@@ -158,14 +169,14 @@ RSpec.describe TestItem do
 
       before { spec_util.add_to_inputs(child_records: :anything) }
 
-      instance_exec(&common_with_pk_expectations)
+      instance_exec(&with_pk_non_block_expectations)
       instance_exec(&assert_saved)
     end
 
     context 'except: is absent' do # rubocop:disable RSpec/EmptyExampleGroup
       subject { better_batch.with_upserted_pk(spec_util.data, unique_by:) }
 
-      instance_exec(&common_with_pk_expectations)
+      instance_exec(&with_pk_non_block_expectations)
       instance_exec(&assert_saved)
     end
   end
@@ -175,20 +186,24 @@ RSpec.describe TestItem do
 
     before { spec_util.preload_default }
 
-    instance_exec(&common_with_pk_expectations)
+    instance_exec(&with_pk_non_block_expectations)
 
     context 'with extraneous data' do # rubocop:disable RSpec/EmptyExampleGroup
       subject { better_batch.with_selected_pk(spec_util.data, unique_by:) }
 
       before { spec_util.add_to_inputs(child_records: :anything) }
 
-      instance_exec(&common_with_pk_expectations)
+      instance_exec(&with_pk_non_block_expectations)
+    end
+
+    context 'block form' do # rubocop:disable RSpec/EmptyExampleGroup
+      subject { better_batch.with_selected_pk(spec_util.data, unique_by:, &spec_util.mem_block) }
+
+      instance_exec(&with_pk_block_expectations)
     end
   end
 
-  common_set_pk_expectations = proc do
-    it { is_expected.to eq(spec_util.expected_set_pk) }
-
+  set_pk_expectations = proc do
     it 'adds ids to the input data' do
       expect { subject }.to change { spec_util.inputs_slice(:id) }
         .from([{}, {}, {}])
@@ -196,21 +211,39 @@ RSpec.describe TestItem do
     end
   end
 
+  set_pk_non_block_expectations = proc do
+    instance_exec(&set_pk_expectations)
+    it('returns inputs with pk added') { is_expected.to eq(spec_util.expected_set_pk) }
+  end
+
+  set_pk_block_expectations = proc do
+    instance_exec(&set_pk_expectations)
+    instance_exec(&block_form_expectations)
+
+    it 'yields inputs with pk added' do
+      subject
+      expect(spec_util.yielded).to eq(spec_util.expected_set_pk)
+    end
+  end
+
+  set_upserted_pk_non_block_expectations = proc do
+    instance_exec(&set_pk_non_block_expectations)
+    instance_exec(&assert_saved)
+  end
+
   describe '#set_upserted_pk' do
     subject { better_batch.set_upserted_pk(spec_util.data, unique_by:, except:) }
 
     let(:except) { nil }
 
-    instance_exec(&common_set_pk_expectations)
-    instance_exec(&assert_saved)
+    instance_exec(&set_upserted_pk_non_block_expectations)
 
     context 'except: :child_records' do # rubocop:disable RSpec/EmptyExampleGroup
       let(:except) { :child_records }
 
       before { spec_util.add_to_inputs(child_records: :anything) }
 
-      instance_exec(&common_set_pk_expectations)
-      instance_exec(&assert_saved)
+      instance_exec(&set_upserted_pk_non_block_expectations)
     end
 
     context 'except: [:child_records]' do # rubocop:disable RSpec/EmptyExampleGroup
@@ -218,23 +251,34 @@ RSpec.describe TestItem do
 
       before { spec_util.add_to_inputs(child_records: :anything) }
 
-      instance_exec(&common_set_pk_expectations)
-      instance_exec(&assert_saved)
+      instance_exec(&set_upserted_pk_non_block_expectations)
     end
 
     context 'except: is absent' do # rubocop:disable RSpec/EmptyExampleGroup
       subject { better_batch.set_upserted_pk(spec_util.data, unique_by:) }
 
-      instance_exec(&common_set_pk_expectations)
+      instance_exec(&set_upserted_pk_non_block_expectations)
+    end
+
+    context 'block form' do # rubocop:disable RSpec/EmptyExampleGroup
+      subject { better_batch.set_upserted_pk(spec_util.data, unique_by:, &spec_util.mem_block) }
+
+      instance_exec(&set_pk_block_expectations)
       instance_exec(&assert_saved)
     end
   end
 
-  describe '#set_selected_pk' do # rubocop:disable RSpec/EmptyExampleGroup
+  describe '#set_selected_pk' do
     subject { better_batch.set_selected_pk(spec_util.data, unique_by:) }
 
     before { better_batch.upsert(spec_util.data, unique_by:) }
 
-    instance_exec(&common_set_pk_expectations)
+    instance_exec(&set_pk_non_block_expectations)
+
+    context 'block form' do # rubocop:disable RSpec/EmptyExampleGroup
+      subject { better_batch.set_selected_pk(spec_util.data, unique_by:, &spec_util.mem_block) }
+
+      instance_exec(&set_pk_block_expectations)
+    end
   end
 end

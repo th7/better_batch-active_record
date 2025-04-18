@@ -88,6 +88,14 @@ class SpecUtil
     @lazy ||= Lazy.new(self)
   end
 
+  def mem_block
+    proc { |item| yielded << item }
+  end
+
+  def yielded
+    @yielded ||= []
+  end
+
   private
 
   attr_reader :spec

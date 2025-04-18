@@ -19,3 +19,7 @@ RSpec/NamedSubject:
 
 Style/Documentation:
   Enabled: false
+
+RSpec/SpecFilePathSuffix:
+  Exclude:
+    - spec/benchmarks.rb
