@@ -9,6 +9,6 @@ module BetterBatch
     # because Rails is love, Rails is life, Rails is everything
     module Version; end
 
-    VERSION = '1.0.3'
+    VERSION = '1.1.0'
   end
 end
