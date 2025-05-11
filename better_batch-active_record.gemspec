@@ -31,5 +31,5 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_dependency 'activerecord', '>=7', '<9'
-  spec.add_dependency 'better_batch', '~> 1'
+  spec.add_dependency 'better_batch', '~> 1', '>=1.0.5'
 end
