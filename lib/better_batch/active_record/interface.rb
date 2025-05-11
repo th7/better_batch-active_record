@@ -90,7 +90,9 @@ module BetterBatch
       end
 
       def db_exec(sql, json_data)
-        model.connection.exec_query(sql, nil, [json_data])
+        model.connection_pool.with_connection do |conn|
+          conn.exec_query(sql, nil, [json_data])
+        end
       end
 
       def primary_key
