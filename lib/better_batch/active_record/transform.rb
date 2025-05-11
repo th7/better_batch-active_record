@@ -32,7 +32,7 @@ module BetterBatch
           when nil, []
             nil
           else
-            hash_rows(query.returning, rows)
+            hash_rows(query.returning.map(&:input), rows)
           end
         end
 
