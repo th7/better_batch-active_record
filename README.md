@@ -20,7 +20,7 @@ Then:
 
 ```ruby
 class MyModel < ApplicationModel
-  include BetterBatch::ActiveRecord::Model
+  extend BetterBatch::ActiveRecord::Model
 end
 
 # all rows must have the same keys
